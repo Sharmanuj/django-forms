@@ -1,28 +1,21 @@
 from django.views.generic import TemplateView
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views import View
 from home.forms import HomeForm
 from home.models import Post, Friend
 
 
-class HomeView(TemplateView):
-    template_name = 'home/home.html'
-
+class HomeView(LoginRequiredMixin,View):
     def get(self, request):
         form = HomeForm()
         posts = Post.objects.all().order_by('-created')
         users = User.objects.exclude(id=request.user.id)
-        try:
-            friend = Friend.objects.filter(current_user=request.user)
-        # import code
-        # code.interact(local=dict(globals(), **locals()))
-        except:
-            print("An exception occurred")
-        # friends = friend.users.all()
-
+        friend = Friend.objects.get(current_user=request.user)
+        friends = friend.users.all()
         args = {
-            'form': form, 'posts': posts, 'users': users, 
+            'form': form, 'posts': posts, 'users': users, 'friends':friends
         }
         return render(request, 'home/home.html', args)
 
